@@ -1,0 +1,68 @@
+initialize() {
+	// mutation rates and recombination rates are set up to be ~ 10x of realistic
+	// to be able to track smaller numbers of positions
+	initializeMutationRate(1e-6);
+	
+	// mutation types
+	// neutral mutations
+	// id, dominanceCoef, distributionType: "f"=fixed, selectionCoef
+	initializeMutationType("m1", 0.5, "f", 0);
+	initializeMutationType("m2", 0.5, "f", 0);
+	initializeMutationType("m3", 0.5, "f", 0);
+	
+	// deleterious mutations
+	initializeMutationType("m4", 0.2, "f", -0.004);
+	initializeMutationType("m5", 0.1, "f", -0.008);
+	initializeMutationType("m6", 0.05, "f", -0.016);
+	initializeMutationType("m7", 0.02, "f", -0.030);
+	
+	// favorable mutations
+	initializeMutationType("m8", 0.8, "f", 0.004);
+	initializeMutationType("m9", 0.9, "f", 0.008);
+	
+	// genomic element types
+	// g1 neutral areas
+	// g2 enhancer areas that are large but weak and fairly additive
+	// g3 promoter areas and 3'UTR that surround genes have moderate effects and somewhat dominant
+	// g4 synonymous areas in genes have moderate effects and somewhat dominant, no neutral mutations
+	// g5 non-synonymous areas in genes have strong effects are quite dominant, and there are no neutral mutations
+	// id, mutationTypes, proportions
+	initializeGenomicElementType("g1", m1, 1);
+	initializeGenomicElementType("g2", c(m2, m4, m8), c(50, 45, 5));
+	initializeGenomicElementType("g3", c(m3, m5, m8), c(50, 48, 2));
+	initializeGenomicElementType("g4", c(m3, m6, m9), c(50, 49, 1));
+	initializeGenomicElementType("g5", c(m3, m7, m9), c(50, 49, 1));
+
+	for (index in 0:299 * 10000){
+		initializeGenomicElement(g2, index + 0, index + 999);
+		initializeGenomicElement(g3, index + 1000, index + 1399);
+		initializeGenomicElement(g5, index + 1400, index + 1419);
+		initializeGenomicElement(g4, index + 1420, index + 1439);
+		initializeGenomicElement(g5, index + 1440, index + 1459);
+		initializeGenomicElement(g4, index + 1460, index + 1479);
+		initializeGenomicElement(g5, index + 1480, index + 1499);
+		initializeGenomicElement(g4, index + 1500, index + 1519);
+		initializeGenomicElement(g5, index + 1520, index + 1539);
+		initializeGenomicElement(g4, index + 1540, index + 1559);
+		initializeGenomicElement(g5, index + 1560, index + 1579);
+		initializeGenomicElement(g4, index + 1580, index + 1599);
+		initializeGenomicElement(g3, index + 1600, index + 1999);
+		initializeGenomicElement(g1, index + 2000, index + 9999);
+	}
+
+	// chromosomes of length 3Mbp with uniform recombination
+	// since recombination and mutation are ~ 10x, this equates to chromosomes of 30Mbp
+	// separated by single bases with recombination of 0.5
+	ends = c(2999999); 
+	rates = c(3e-7); 
+	initializeRecombinationRate(rates, ends);
+}
+
+// create a population of 500 individuals
+1 {
+	sim.addSubpop("p1", 500);
+}
+1 late() {print("Added pop 1. " + time());}
+
+12000 late() { sim.outputFull("~/Documents/simOut/SLiM/constrainedElementsOut#.txt"); }
+12000 late() {print("Done. " + time());}

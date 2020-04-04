@@ -1,0 +1,592 @@
+---
+title: "PurgingAnalysis"
+author: "somo"
+date: "5/7/2019"
+output: html_document
+---
+Comparing the effect of selfing using three schemes. 1) Self, 2) NoSelf, and 3)
+Selfmean.  The founder size used is 600 and marker density for genotyping is
+1200 The experiment was performed 24 times/replicates/seasons. The gene action
+model was of dominance type. The scheme was for five generations. The scripts
+for simulations are stored in folder Scheme and partly labelled standard.
+NOTE: There is a 25th group which are the means of the 24 replicates. To make
+figures, this 25th group needs to be removed
+NOTE: Somo and Jean-Luc have a different file structure. Set forSomo <- TRUE
+to run analyses on Somo's file structure
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+forSomo <- FALSE
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/Schemes/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/Schemes/Outputs/")
+SelfMean <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_MeanSelfPlotOut.rds", sep=""))$plotData
+Self <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_SelfPlotOut.rds", sep=""))$plotData
+NoSelf <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_NoSelfPlotOut.rds", sep=""))$plotData
+schemeMeans <- cbind(popID=0:5, selfMean=subset(SelfMean, group == 25)$g, self=subset(Self, group == 25)$g, noSelf=subset(NoSelf, group == 25)$g)
+SelfMean <- subset(SelfMean, group < 25)
+Self <- subset(Self, group < 25)
+NoSelf <- subset(NoSelf, group < 25)
+```
+
+In this section I am adding a new column as identify before combining the
+three data sets. The column is named scheme.
+```{r}
+SelfMean$scheme <- rep("S1", nrow(SelfMean)) # make new column
+Self$scheme <- rep("S2", nrow(Self)) # make new column
+NoSelf$scheme <- rep("S3", nrow(NoSelf)) # make new column
+Selfmean_Self_NoSelf <- rbind(SelfMean, Self, NoSelf)
+table(Selfmean_Self_NoSelf$scheme)
+head(Selfmean_Self_NoSelf)
+```
+
+Here am extracting generation five data and also excluding the mean of each
+scheme. This new data then is used for fitting the model to compare whether
+there is significant difference betwen the groups and 
+Here the group represent 24 replicates, scheme represents SelfMean, Self, 
+and NoSelf, g represent the genetic improvement
+```{r}
+Selfmean_Self_NoSelf$group <- paste("Rep", Selfmean_Self_NoSelf$group, sep = "")
+SchemeGen5dataAnova <- subset(Selfmean_Self_NoSelf, popID == 5)
+gen5dataLM <- lm(g ~ 1 + group + scheme,  data=SchemeGen5dataAnova)
+# summary(gen5dataLM)
+anova(gen5dataLM)
+dim(gen5dataLM)
+```
+
+```{r}
+library(plotrix)
+mdfunc<-function(x, na.rm=T){return(sd(x, na.rm=T) / sqrt(sum(!is.na(x))))
+}
+
+par(mar = c(4,4,3,2))
+bp <- brkdn.plot(g ~ scheme + popID, data=Selfmean_Self_NoSelf, stagger=0.01, ylim=c(-0.1, 1.2), lwd=2, cex=1, col=c("blue", "orange", "black"), md="mdfunc", xlab="Generation", ylab="Genetic Improvement", main="Standard Schemes")
+legend("topleft", legend=c("Self", "Self+", "NoSelf"), col=c("orange", "blue","black" ), lwd=2, cex=0.7, horiz = T)
+
+```
+
+
+FounderSize200
+Here I am reading the RDS data and extracting plotdata component from from the plotdata file which has two main data type. I excluded totcost because cost factor was not simulated for
+```{r}
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/FounderSizes/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/FounderSizes/Outputs/")
+SelfMean200 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F200NORRANFounderSize200_MeanSelfPlotOut.rds", sep=""))$plotData
+Self200 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F200NORRANFounderSize200_SelfPlotOut.rds", sep=""))$plotData
+NoSelf200 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F200NORRANFounderSize200_NoSelfPlotOut.rds", sep=""))$plotData
+
+schemeMeans200 <- cbind(popID=0:5, selfMean=subset(SelfMean200, group == 25)$g, self=subset(Self200, group == 25)$g, noSelf=subset(NoSelf200, group == 25)$g)
+SelfMean200 <- subset(SelfMean200, group < 25)
+Self200 <- subset(Self200, group < 25)
+NoSelf200 <- subset(NoSelf200, group < 25)
+
+SelfMean200$scheme <- "S1"
+Self200$scheme <- "S2"
+NoSelf200$scheme <- "S3" 
+
+FounderSize200<- rbind(SelfMean200, Self200, NoSelf200)
+
+FounderSize200$Founder <- "F200"
+head(FounderSize200)
+```
+
+FounderSize600
+```{r}
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/Schemes/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/Schemes/Outputs/")
+SelfMean600 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_MeanSelfPlotOut.rds", sep=""))$plotData
+Self600 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_SelfPlotOut.rds", sep=""))$plotData
+NoSelf600 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_NoSelfPlotOut.rds", sep=""))$plotData
+
+schemeMeans600 <- cbind(popID=0:5, selfMean=subset(SelfMean600, group == 25)$g, self=subset(Self600, group == 25)$g, noSelf=subset(NoSelf600, group == 25)$g)
+SelfMean600 <- subset(SelfMean600, group < 25)
+Self600 <- subset(Self600, group < 25)
+NoSelf600 <- subset(NoSelf600, group < 25)
+
+SelfMean600$scheme <- "S1"
+Self600$scheme <- "S2"
+NoSelf600$scheme <- "S3" 
+
+FounderSize600 <- rbind(SelfMean600, Self600, NoSelf600)
+
+FounderSize600$Founder <- "F600"
+head(FounderSize600)
+```
+
+
+FounderSize1500
+```{r}
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/FounderSizes/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/FounderSizes/Outputs/")
+SelfMean1500 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F1500NORRANFounderSize1500_MeanSelfPlotOut.rds", sep=""))$plotData
+Self1500 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F1500NORRANFounderSize1500_SelfPlotOut.rds", sep=""))$plotData
+NoSelf1500 <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F1500NORRANFounderSize1500_NoSelfPlotOut.rds", sep=""))$plotData
+
+schemeMeans1500 <- cbind(popID=0:5, selfMean=subset(SelfMean1500, group == 25)$g, self=subset(Self1500, group == 25)$g, noSelf=subset(NoSelf1500, group == 25)$g)
+SelfMean1500 <- subset(SelfMean1500, group < 25)
+Self1500 <- subset(Self1500, group < 25)
+NoSelf1500 <- subset(NoSelf1500, group < 25)
+
+SelfMean1500$scheme <- "S1"
+Self1500$scheme <- "S2"
+NoSelf1500$scheme <- "S3" 
+
+FounderSize1500<- rbind(SelfMean1500, Self1500, NoSelf1500)
+
+FounderSize1500$Founder <- "F1500"
+head(FounderSize1500)
+```
+
+Combining all the founders
+```{r}
+AllFounders <- rbind(FounderSize200, FounderSize600, FounderSize1500)
+table(AllFounders$Founder)
+```
+
+here am extracting generation five data and also excluding the mean of each scheme. This new data then is used for fitting the model 
+to compare whether there is significant difference betwen the groups and 
+```{r}
+AllFoundersAnova <- subset(AllFounders, popID %in% 5)
+Newgen5founderdata<- subset(AllFoundersAnova, group!=25)
+Newgen5founderdata$group <- as.character(Newgen5founderdata$group)
+str(Newgen5founderdata)
+```
+
+Here the group represent 24 replicates, scheme represents SelfMean, Self, and NoSelf, g represent the genetic improvement
+```{r}
+gen5dataLMFounder <- lm(g~1 + scheme + Founder + group + scheme*Founder + group*Founder, data = Newgen5founderdata)
+#summary(gen5dataLMFounder )
+anova(gen5dataLMFounder )
+dim(gen5dataLMFounder )
+
+```
+
+Plot for all founder sizes
+```{r}
+FounderSize200NoMean <- subset(FounderSize200, group!=25)
+FounderSize600NoMean <- subset(FounderSize600, group!=25)
+FounderSize1500NoMean <- subset(FounderSize1500, group!=25)
+
+
+library(plotrix)
+mdfunc<-function(x, na.rm=T){return(sd(x, na.rm=T) / sqrt(sum(!is.na(x))))
+}
+
+ylim <- range(c(schemeMeans200[,-1], schemeMeans600[,-1], schemeMeans1500[,-1])) # Extreme of the means
+ylim <- ylim + c(-0.1, 0.1) # Make space for the error bars
+#par(mfrow=c(3,1))
+par(mar = c(4,4,3,2))
+bp <- brkdn.plot(g ~ scheme + popID, data=FounderSize200NoMean, ylim=ylim, stagger=0.01, lwd=2,cex=1,col=c("blue", "orange", "black"), md="mdfunc", xlab="Generation", ylab="Genetic Improvement",main="200 Founders")
+  legend("topleft",legend=c("Self", "Self+", "NoSelf"), col=c("orange", "blue", "black"), lwd = 2, cex=0.7, horiz = T)
+  
+bp <- brkdn.plot(g ~ scheme + popID, data=FounderSize600NoMean, ylim=ylim, stagger=0.01, lwd=2,cex=1,col=c("blue", "orange", "black"), md="mdfunc", xlab="Generation", ylab="Genetic Improvement",main="600 Founders")
+  legend("topleft",legend=c("Self", "Self+", "NoSelf"), col=c("orange", "blue", "black"), lwd = 2, cex=0.7, horiz = T)
+  
+bp <- brkdn.plot(g ~ scheme + popID, data=FounderSize1500NoMean , ylim=ylim, stagger=0.01, lwd=2,cex=1,col=c("blue", "orange", "black"), md="mdfunc", xlab="Generation", ylab="Genetic Improvement", main="1500 Founders")
+legend("topleft",legend=c("Self", "Self+", "NoSelf"), col=c("orange", "blue", "black" ), lwd = 2, cex=0.7, horiz = T)
+```
+
+Equal Contribution
+Compare standard to when you reduce inbreeding depression by forcing equal
+contribution among parents
+```{r}
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/Schemes/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/Schemes/Outputs/")
+notEqSelf <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_SelfPlotOut.rds", sep=""))$plotData
+notEqSelfMean <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_MeanSelfPlotOut.rds", sep=""))$plotData
+
+schemeMeans1200 <- cbind(popID=0:5, self=subset(marker1200Self, group == 25)$g, noSelf=subset(marker1200NoSelf, group == 25)$g)
+
+marker1200Self <- subset(marker1200Self, group < 25)
+marker1200NoSelf <- subset(marker1200NoSelf, group < 25)
+
+marker1200Self$scheme <- "S4"
+marker1200NoSelf$scheme <- "S1"
+
+MarkerDensity1200<- rbind(marker1200Self, marker1200NoSelf)
+MarkerDensity1200$MarkerDensity<- "MD1200"
+head(MarkerDensity1200)
+```
+
+MarkerDensity: for 1200 vs 3600 on Self vs NoSelf. Here reading in and extracting the plotdata. For the 1200 marker, I used the standard simulation
+data from scheme folder
+```{r}
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/Schemes/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/Schemes/Outputs/")
+marker1200Self <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_SelfPlotOut.rds", sep=""))$plotData
+marker1200NoSelf <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_NoSelfPlotOut.rds", sep=""))$plotData
+
+schemeMeans1200 <- cbind(popID=0:5, self=subset(marker1200Self, group == 25)$g, noSelf=subset(marker1200NoSelf, group == 25)$g)
+
+marker1200Self <- subset(marker1200Self, group < 25)
+marker1200NoSelf <- subset(marker1200NoSelf, group < 25)
+
+marker1200Self$scheme <- "S4"
+marker1200NoSelf$scheme <- "S1"
+
+MarkerDensity1200<- rbind(marker1200Self, marker1200NoSelf)
+MarkerDensity1200$MarkerDensity<- "MD1200"
+head(MarkerDensity1200)
+```
+
+
+3600 on Self vs NoSelf
+```{r}
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/MarkerDensity/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/MarkerDensity/Outputs/")
+marker3600Self <- readRDS(paste(prefix, "_purgeG2000H1000M3600Q300N500F600NORRANStd_MarkerDensity3600_SelfPlotOut.rds", sep=""))$plotData
+marker3600NoSelf <- readRDS(paste(prefix, "_purgeG2000H1000M3600Q300N500F600NORRANStd_MarkerDensity3600_NoSelfPlotOut.rds", sep=""))$plotData
+
+schemeMeans3600 <- cbind(popID=0:5, self=subset(marker3600Self, group == 25)$g, noSelf=subset(marker3600NoSelf, group == 25)$g)
+
+marker3600Self <- subset(marker3600Self, group < 25)
+marker3600NoSelf <- subset(marker3600NoSelf, group < 25)
+
+marker3600Self$scheme <- "S2"
+marker3600NoSelf$scheme <- "S3"
+
+MarkerDensity3600<- rbind(marker3600Self, marker3600NoSelf)
+MarkerDensity3600$MarkerDensity<- "MD3600"
+head(MarkerDensity3600)
+```
+
+Combining all the founders
+```{r}
+AllMarkerDensity <- rbind(MarkerDensity1200, MarkerDensity3600)
+table(AllMarkerDensity$MarkerDensity)
+table(AllMarkerDensity$scheme)
+```
+
+Extract generation five data and also excluding the mean of each scheme. This 
+new data then is used for fitting the model to compare whether there is
+significant difference betwen the groups and 
+```{r}
+AllMarkerDensityAnova <- subset(AllMarkerDensity , popID%in%5)
+Newgen5MarkerDensitydata<- subset(AllMarkerDensity, group!=25)
+Newgen5MarkerDensitydata$group <- as.character(Newgen5MarkerDensitydata$group)
+```
+
+Here the group represent 24 replicates, scheme represents SelfMean, Self, and 
+NoSelf, g represent the genetic improvement
+```{r}
+gen5dataMdensity <- lm(g ~ 1 + group + MarkerDensity + scheme  + scheme*MarkerDensity + group*MarkerDensity, data = Newgen5MarkerDensitydata)
+#summary(gen5dataMdensity)
+anova(gen5dataMdensity)
+```
+
+```{r}
+MarkerDensity1200NoMean <- subset(MarkerDensity1200, group!=25)
+MarkerDensity3600NoMean <- subset(MarkerDensity3600, group!=25)
+
+library(plotrix)
+mdfunc <- function(x, na.rm=T){return(sd(x, na.rm=T) / sqrt(sum(!is.na(x))))
+}
+
+par(mar = c(6,4,4,2))
+par(mfrow=c(1, 2))
+bpMd1200<-brkdn.plot(g ~ scheme + popID, data=MarkerDensity1200NoMean, ylim = c(-0.3, 1.2), lwd=2,cex=1,col=c("black", "orange"), md="mdfunc", xlab="Generation", ylab="Genetic Improvement", main="MarkerDensity1200")
+legend("topleft",legend=c("Self", "NoSelf"), col=c("orange", "black"), lwd = 2, cex=0.7, horiz = T)
+  
+  
+bMd3600<-brkdn.plot(g ~ scheme + popID, data=MarkerDensity3600NoMean , ylim = c(-0.3, 1.2), lwd=2,cex=1,col=c("orange", "black"), md="mdfunc", xlab="Generation", ylab="Genetic Improvement", main="MarkerDensity3600")
+legend("topleft",legend=c("Self", "NoSelf"), col=c("orange", "black"), lwd = 2, cex=0.7, horiz = T)
+  
+par(mfrow=c(1, 1))
+allMarkDens <- rbind(MarkerDensity1200NoMean, MarkerDensity3600NoMean)
+bp <- brkdn.plot(g ~ scheme + popID, data=allMarkDens, ylim = c(-0.3, 1.2), stagger=0.01, lwd=2, cex=1,col=c("black", "blue", "dark green", "orange"), md="mdfunc", xlab="Generation", ylab="Genetic Improvement", main="Marker Density")
+legend("topleft",legend=c("Self 1200", "NoSelf 1200", "Self 3600", "NoSelf 3600"), col=c("orange", "black", "blue", "dark green"), lwd = 2, cex=0.7, horiz = T)
+```
+
+program size based on progenies evaluated at CET vs PYT trial types
+LESSLESS
+```{r}
+LessLessSM <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/LessLess/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeMoreCETLessPYT_MeanSelfPlotOut.rds")
+LessLessS <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/LessLess/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeLessCETLessPYT_SelfPlotOut.rds")
+LessLessNS <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/LessLess/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeLessCETLessPYT_NoSelfPlotOut.rds")
+LessLessSMplotdata <- LessLessSM$plotData
+LessLessSplotdata <- LessLessS$plotData
+LessLessNSplotdata <-LessLessNS$plotData
+dim(LessLessSMplotdata)
+LessLessSMplotdata$scheme <- rep("SelfMean",nrow(LessLessSMplotdata)); LessLessSplotdata$scheme <- rep("Self", nrow(LessLessSplotdata)); LessLessNSplotdata$scheme <- rep("NoSelf", nrow(LessLessNSplotdata)) 
+
+AllLessLess<- rbind(LessLessSMplotdata, LessLessSplotdata, LessLessNSplotdata)
+AllLessLess$Program <- rep("LessLess",nrow(AllLessLess))
+
+AllLessLessNoMean <- subset(AllLessLess, group!=25)
+
+```
+
+
+LessMore
+```{r}
+LessMoreSM <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/LessMore/_purgeG2000H1000M1200Q300N500F600NORRANStandard_MeanSelfPlotOut.rds")
+LessMoreS <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/LessMore/_purgeG2000H1000M1200Q300N500F600NORRANStandard_SelfPlotOut.rds")
+LessMoreNS <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/LessMore/_purgeG2000H1000M1200Q300N500F600NORRANStandard_NoSelfPlotOut.rds")
+LessMoreSMplotdata <- LessMoreSM$plotData
+LessMoreSplotdata <- LessMoreS$plotData
+LessMoreNSplotdata <-LessMoreNS$plotData
+
+LessMoreSMplotdata$scheme <- rep("SelfMean",nrow(LessMoreSMplotdata))
+LessMoreSplotdata$scheme <- rep("Self", nrow(LessMoreSplotdata))
+LessMoreNSplotdata$scheme <- rep("NoSelf", nrow(LessMoreNSplotdata)) 
+
+AllLessMore<- rbind(LessMoreSMplotdata, LessMoreSplotdata, LessMoreNSplotdata)
+AllLessMore$Program <- rep("LessMore",nrow(AllLessMore))
+head(AllLessMore)
+
+AllLessMoreNoMean <- subset(AllLessMore, group!=25)
+head(AllLessMoreNoMean)
+```
+
+
+MOREMORE
+```{r}
+MoreMoreSM <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/MoreMore/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeMoreCETMorePYT_MeanSelfPlotOut.rds")
+MoreMoreS <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/MoreMore/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeMoreCETMorePYT_SelfPlotOut.rds")
+MoreMoreNS <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/MoreMore/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeMoreCETMorePYT_NoSelfPlotOut.rds")
+MoreMoreSMplotdata <- MoreMoreSM$plotData
+MoreMoreSplotdata <- MoreMoreS$plotData
+MoreMoreNSplotdata <-MoreMoreNS$plotData
+
+
+MoreMoreSMplotdata$scheme <- rep("SelfMean",nrow(MoreMoreSMplotdata))
+MoreMoreSplotdata$scheme <- rep("Self", nrow(MoreMoreSplotdata))
+MoreMoreNSplotdata$scheme <- rep("NoSelf", nrow(MoreMoreNSplotdata)) 
+
+AllMoreMore<- rbind(MoreMoreSMplotdata, MoreMoreSplotdata, MoreMoreNSplotdata)
+
+AllMoreMore$Program <- rep("MoreMore",nrow(AllMoreMore))
+head(AllMoreMore)
+table(AllMoreMore$scheme)
+AllMoreMoreNoMean <- subset(AllMoreMore, group!=25)
+```
+
+MoreLess
+```{r}
+MoreLessSM <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/MoreLess/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeMoreCETLessPYT_MeanSelfPlotOut.rds")
+MoreLessS <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/MoreLess/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeMoreCETLessPYT_SelfPlotOut.rds")
+MoreLessNS <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/ProgramSizeCET:PYT/MoreLess/_purgeG2000H1000M1200Q300N500F600NORRANProgramSizeMoreCETLessPYT_NoSelfPlotOut.rds")
+MoreLessSMplotdata <- MoreLessSM$plotData
+MoreLessSplotdata <- MoreLessS$plotData
+MoreLessNSplotdata <-MoreLessNS$plotData
+
+
+MoreLessSMplotdata$scheme <- rep("SelfMean",nrow(MoreLessSMplotdata))
+MoreLessSplotdata$scheme <- rep("Self", nrow(MoreLessSplotdata))
+MoreLessNSplotdata$scheme <- rep("NoSelf", nrow(MoreLessNSplotdata)) 
+
+AllMoreLess<- rbind(MoreLessSMplotdata, MoreLessSplotdata, MoreLessNSplotdata)
+
+AllMoreLess$Program <- rep("MoreLess",nrow(AllMoreLess))
+head(AllMoreLess)
+AllMoreLessNoMean <- subset(AllMoreLess, group!=25)
+```
+
+
+```{r}
+library(plotrix)
+mdfunc<-function(x, na.rm=T){return(sd(x, na.rm=T) / sqrt(sum(!is.na(x))))
+}
+par(mar = c(4,5.5,2,1))
+ 
+ par(mfrow=c(2,2))
+
+bp <- brkdn.plot(g~ scheme + factor(popID), data=AllLessLessNoMean,ylim = c(0, 1.3), lwd=2,cex=1, col=c("black", "orange", "blue"),md="mdfunc",
+                 lty=1:8, pch=1:8, xlab="Generation", ylab="Genetic Improvement",main="LessLess")
+  legend("topleft",legend=c("Self+", "Self", "NoSelf"), col=c("blue","orange","black" ),lty=2, lwd = 2, cex=0.5, horiz = T)
+  
+bp <- brkdn.plot(g~ scheme + factor(popID), data=AllLessMoreNoMean,ylim = c(0, 1.3), lwd=2,cex=1, col=c("black", "orange", "blue"),md="mdfunc",
+                 lty=1:8, pch=1:8, xlab="Generation", ylab="Genetic Improvement",main="LessMore")
+legend("topleft",legend=c("Self+", "Self", "NoSelf"), col=c("blue","orange","black"),lty=2, lwd = 2, cex=0.5, horiz = T)
+
+
+    bp <- brkdn.plot(g~ scheme + factor(popID), data=AllMoreLessNoMean,ylim = c(0, 1.3), lwd=2,cex=1, col=c("black", "orange", "blue"),md="mdfunc",
+                 lty=1:8, pch=1:8, xlab="Generation", ylab="Genetic Improvement",main="MoreLess")
+  legend("topleft",legend=c("Self+", "Self", "NoSelf"), col=c("blue","orange","black"),lty=2, lwd = 2, cex=0.5, horiz = T)
+  
+bp <- brkdn.plot(g~ scheme + factor(popID), data=AllMoreMoreNoMean,ylim = c(0, 1.3), lwd=2,cex=1, col=c("black", "orange", "blue"),md="mdfunc",
+                 lty=1:8, pch=1:8, xlab="Generation", ylab="Genetic Improvement",main="MoreMore")
+  legend("topleft", legend=c("Self+", "Self", "NoSelf"), col=c("blue","orange","black"),lty=2, lwd = 2, cex=0.5, horiz = T)
+  
+  
+
+  
+```
+
+Anova for the Program size. The mean data for each simulation has already been excluded
+```{r}
+ProgramSize <- rbind(AllLessLessNoMean,AllLessMoreNoMean,AllMoreMoreNoMean,AllMoreLessNoMean)
+table(ProgramSize$Program)
+head(ProgramSize)
+```
+
+
+Here the group represent 24 replicates, scheme represents SelfMean, Self, and NoSelf, g represent the genetic improvement. The data used for Anova is for generation 5
+```{r}
+
+
+ProgramSizeAnova <- subset(ProgramSize, popID%in%5)
+ProgramSizeAnova$group <- as.character(ProgramSizeAnova$group)
+
+gen5dataLMprogramsize <- lm(g~1 + group + scheme    + Program + group*Program + scheme*Program +group*scheme,  data = ProgramSizeAnova)
+summary(gen5dataLMprogramsize)
+anova(gen5dataLMprogramsize )
+
+```
+
+High and Low Selection Intensity
+```{r}
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/SelectionIntensity/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/SelectionIntensity/Outputs/")
+HselectionIntenSM <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANHighSelectionIntensityF600_MeanSelfPlotOut.rds", sep=""))$plotData
+HselectionIntenS <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANHighSelectionIntensityF600_SelfPlotOut.rds", sep=""))$plotData
+HselectionIntenNS <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANHighSelectionIntensityF600_NoSelfPlotOut.rds", sep=""))$plotData
+
+schemeMeansHigh <- cbind(popID=0:5, selfMean=subset(HselectionIntenSM, group == 25)$g, self=subset(HselectionIntenS, group == 25)$g, noSelf=subset(HselectionIntenNS, group == 25)$g)
+
+HselectionIntenSM$scheme <- "S1"
+HselectionIntenS$scheme <- "S2"
+HselectionIntenNS$scheme <- "S3" 
+
+AllHighSelectInten<- rbind(HselectionIntenSM, HselectionIntenS, HselectionIntenNS)
+
+AllHighSelectInten$Selection<- rep("HighIntensity",nrow(AllHighSelectInten))
+
+AllHighSelectIntenNoMean <- subset(AllHighSelectInten, group!=25)
+
+```
+
+
+
+```{r}
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/Schemes/", "~/Google Drive/Teaching/People/MohamedSomoIbrahim/PurgeSimulations/PurgingSimulationScript2019/Schemes/Outputs/")
+LselectionIntenSM <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_MeanSelfPlotOut.rds", sep=""))$plotData
+LselectionIntenS <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_SelfPlotOut.rds", sep=""))$plotData
+LselectionIntenNS <- readRDS(paste(prefix, "_purgeG2000H1000M1200Q300N500F600NORRANStandard_NoSelfPlotOut.rds", sep=""))$plotData
+
+schemeMeansLow <- cbind(popID=0:5, selfMean=subset(LselectionIntenSM, group == 25)$g, self=subset(LselectionIntenS, group == 25)$g, noSelf=subset(LselectionIntenNS, group == 25)$g)
+
+LselectionIntenSM$scheme <- "S1"
+LselectionIntenS$scheme <- "S2"
+LselectionIntenNS$scheme <- "S3" 
+
+AllLowSelectInten<- rbind(LselectionIntenSM, LselectionIntenS, LselectionIntenNS)
+
+AllLowSelectInten$Selection<- "LowIntensity"
+
+AllLowSelectIntenNoMean <- subset(AllLowSelectInten, group!=25)
+```
+
+
+```{r}
+library(plotrix)
+mdfunc<-function(x, na.rm=T){return(sd(x, na.rm=T) / sqrt(sum(!is.na(x))))
+}
+
+ylim <- range(c(schemeMeansLow[,-1], schemeMeansHigh[,-1])) # Extreme of the means
+ylim <- ylim + c(-0.1, 0.1) # Make space for the error bars
+
+par(mar = c(4,5.5,2,0))
+par(mfrow=c(1,2))
+
+bp <- brkdn.plot(g~ scheme + factor(popID), data=AllHighSelectIntenNoMean,ylim = ylim, lwd=2,cex=1, col=c("blue", "orange", "black"),md="mdfunc", xlab="Generation", ylab="Genetic Improvement",main="High Sel. Intensity (5%)")
+legend("topleft",legend=c("Self+", "Self", "NoSelf"), col=c("blue","orange","black" ), lwd = 2, cex=0.5, horiz = T)
+  
+bp <- brkdn.plot(g~ scheme + factor(popID), data=AllLowSelectIntenNoMean,ylim = ylim, lwd=2,cex=1, col=c("blue", "orange", "black"),md="mdfunc", xlab="Generation", ylab="Genetic Improvement",main="Low Sel. Intensity (10%)")
+legend("topleft",legend=c("Self+", "Self", "NoSelf"), col=c("blue","orange","black"), lwd = 2, cex=0.5, horiz = T)
+```
+
+Addditive model and foundersizes
+```{r}
+AdditiveF200 <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/AdditiveModel/_purgeG2000H1000M1200Q300N500F200NORRANAdditiveModelFounder200SelfPlotOut.rds")$plotData
+AdditiveF600 <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/AdditiveModel/_purgeG2000H1000M1200Q300N500F600NORRANAdditiveModelFounder600SelfPlotOut.rds")$plotData
+AdditiveF1500 <- readRDS("~/Documents/purgingscenarios/SimulationScripts2019/AdditiveModel/_purgeG2000H1000M1200Q300N500F1500NORRANAdditiveModelFounder1500SelfPlotOut.rds")$plotData
+
+AllAdditiveMM3 <- subset(AdditiveF200, group!=25)
+AllAdditiveMM2 <- subset(AdditiveF600, group!=25)
+AllAdditiveMM1 <- subset(AdditiveF1500, group!=25)
+
+```
+
+```{r}
+AllAdditiveMM3$Founder <- rep("ADDF200",nrow(AllAdditiveMM3))
+AllAdditiveMM2$Founder <- rep("ADDF600",nrow(AllAdditiveMM2))
+AllAdditiveMM1$Founder <- rep("ADD1500",nrow(AllAdditiveMM1))
+
+
+ALlADDFounder <- rbind(AllAdditiveMM1, AllAdditiveMM2,AllAdditiveMM3)
+dim(ALlADDFounder)
+table(ALlADDFounder$Founder)
+
+data <- lm(g~1 + scheme + Founder + scheme*Founder ,  data = ALlADDFounder)
+summary(data)
+anova(data )
+```
+
+the data is arranged in 1500, 200 and 600 format. The calling for graph follow that order
+```{r}
+library(plotrix)
+mdfunc<-function(x, na.rm=T){return(2*sd(x, na.rm=T) / sqrt(sum(!is.na(x))))
+}
+
+par(mar = c(4,5.5,2,0))
+ 
+bp <- brkdn.plot(g~ Founder + popID, data=ALlADDFounder,ylim = c(-0.6, 5), lwd=2,cex=1, col=c("brown","orange", "blue"),md="mdfunc",
+                xlab="Generation", ylab="Genetic Improvement",main="Founder|Additive")
+
+
+  legend("topleft",legend=c("ADD200","ADDF600", "ADDF1500"), col=c("orange", "blue","brown"),lty=2, lwd = 2, cex=0.5, horiz = T)
+  
+```
+
+See "MainVsPurgeGains.R" for this analysis
+Main Selection versus Purging Selection
+Here I am using function on 24 reps for substracting between popID with each 
+MainSelecSelecSelf600. The same applies to the purgeselection.
+```{r Gains from Main vs Purge selection}
+library(BreedingSchemeLanguage)
+
+forSomo <- FALSE
+prefix <- ifelse(forSomo, "~/Documents/purgingscenarios/SimulationScripts2019/Schemes/", "~/Documents/TooBigForGD/purgeOutput/")
+allOutfiles <- list.files(paste(prefix, "AllOut", sep=""))
+for (aof in allOutfiles){
+
+  fileName <- paste(prefix, "AllOut/", aof, sep="")
+  mainPurge <- readRDS(fileName)
+  
+  if (exists("simEnv")){
+    rm(list=names(simEnv), envir=simEnv)
+    rm(simEnv)
+  }
+  simEnv <- new.env()
+  simEnv$sims <- mainPurge
+  simEnv$nSim <- length(mainPurge)
+  simEnv$nCore <- 1
+  mv <- plotData(popID = list(0:1, 1, c(4:5, 13, 19), 5, c(8:9, 18), 9, c(12,14), 14, c(17,20), 20))
+  pv <- plotData(popID = list(2:3, 3, 6:7, 7, 10:11, 11, 15:16, 16, 21:22, 22))
+  saveRDS(list(mainVals=mv$data, purgeVals=pv$data), file=paste(prefix, "MainPurge/data", aof, sep=""))
+  rm(list=setdiff(ls(), c("prefix", "forSomo", "allOutFiles"))); gc()
+}
+
+```
+
+```{r}
+mainselectionSelfF600 <- Self600Main_Purge
+mainselectionSelfF600 <- 
+mainselectionSelfF600 <- mainselectionSelfF600$data
+mainselectionSelfF600<- subset(mainselectionSelfF600, group!=25)
+```
+
+
+```{r}
+Gainvec<-c()
+for (i in seq(1, nrow(mainselectionSelfF600)-1, by=2)){
+  gainout<-mainselectionSelfF600[i+1,]$g-mainselectionSelfF600[i,]$g
+  print(gainout)
+  Gainvec<-c(Gainvec,gainout)
+}
+
+rep(Gainvec, each=2)#rep for making sure the substracted value appear for both popID (in both rows)
+mainselectionSelfF600$diffs<-rep(Gainvec, each=2)
+mainselectionSelfF600$diffnames<-rep(names(Gainvec), each=2)
+```
+
+
+```{r}
+
+#plot(Mainselection$g, type="l")
+boxplot(mainselectionSelfF600$diffs[(1:length(mainselectionSelfF600$diffs))%%2==1])#Here I am removing the repeat diff.value
+mean(mainselectionSelfF600$diffs[(1:length(mainselectionSelfF600$diffs))%%2==1])
+sd(mainselectionSelfF600$diffs[(1:length(mainselectionSelfF600$diffs))%%2==1])
+```
+
